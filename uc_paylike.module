@@ -1,0 +1,470 @@
+<?php
+
+module_load_include('inc', 'uc_paylike', 'uc_paylike.admin');
+
+/**
+ * Implements hook_libraries_info().
+ */
+function uc_paylike_libraries_info() {
+  $libraries['paylike'] = array(
+    'name' => 'Paylike PHP Library',
+    'vendor url' => 'https://paylike.io',
+    'download url' => 'https://github.com/paylike/php-api/releases',
+    'download file url' => 'https://github.com/paylike/php-api/archive/v1.0.4.tar.gz',
+    'version arguments' => array(
+      'file' => 'composer.json',
+      'pattern' => '/"version": "(\d+\.\d+\.\d+)"/',
+      'lines' => 4,
+    ),
+    'versions' => array(
+      '1.0.4' => array(
+        'files' => array(
+          'php' => array(
+            'init.php',
+          )
+        ),
+        'paylike_api_version' => '2018-12-05'
+      )
+    ),
+  );
+
+  return $libraries;
+}
+
+/**
+ * Implements hook_uc_payment_gateway().
+ */
+function uc_paylike_uc_payment_gateway() {
+  $gateways['uc_paylike'] = array(
+    'id' => 'uc_paylike',
+    'title' => t('Paylike Gateway'),
+    'description' => t('Process card payments using Paylike gateway.'),
+    'settings' => 'uc_paylike_settings_form',
+    'credit' => 'uc_paylike_charge',
+    'credit_txn_types' => array(
+      UC_CREDIT_AUTH_ONLY,
+      UC_CREDIT_AUTH_CAPTURE,
+      UC_CREDIT_PRIOR_AUTH_CAPTURE,
+      UC_CREDIT_VOID,
+    ),
+  );
+  return $gateways;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function uc_paylike_menu() {
+  $items['admin/store/orders/%uc_order/paylike/refund'] = array(
+    'title' => t('Paylike refund'),
+    'description' => 'Displays a form to refund a Paylike payment.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('uc_paylike_refund_form', 3),
+    'access arguments' => array('process credit cards'),
+    'file' => 'uc_paylike.admin.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function uc_paylike_form_uc_cart_checkout_form_alter(&$form, &$form_state, $form_id) {
+  if (!_uc_paylike_is_enabled()) return;
+
+  global $user, $language, $conf;
+  $order = $form_state['storage']['order'];
+  $payment_form = &$form['panes']['payment']['details'];
+
+  // hide cc fields and set defaults since we rely fully on Paylike's cc fields
+  $payment_form['cc_number']['#type'] = 'hidden';
+  $payment_form['cc_number']['#default_value'] = '5555555555555555';
+  $payment_form['cc_number']['#attributes']['id'] = 'edit-panes-payment-details-cc-number';
+
+  $payment_form['cc_cvv']['#type'] = 'hidden';
+  $payment_form['cc_cvv']['#default_value'] = '111';
+  $payment_form['cc_cvv']['#attributes']['id'] = 'edit-panes-payment-details-cc-cvv';
+
+  $payment_form['cc_exp_year']['#type'] = 'hidden';
+  $payment_form['cc_exp_year']['#attributes']['id'] = 'edit-panes-payment-details-cc-exp-year';
+  $payment_form['cc_exp_year']['#default_value'] = intval(date('Y'));
+
+  $payment_form['cc_exp_month']['#type'] = 'hidden';
+  $payment_form['cc_exp_month']['#default_value'] = intval(date('m')) + 1;
+  $payment_form['cc_exp_month']['#attributes']['id'] = 'edit-panes-payment-details-cc-exp-month';
+
+  // If credit card payment method is selected
+  if ($order->payment_method == 'credit' || (isset($form_state['values']) && $form_state['values']['panes']['payment']['payment_method'] == 'credit')) {
+    $payment_form['paylike_button'] = array(
+      '#type' => 'button',
+      '#default_value' => t('Enter credit card details'),
+      '#attributes' => array(
+        'class' => array('paylike-button'),
+      ),
+      '#states' => array(
+        'visible' => array(
+          ':input[name="panes[payment][payment_method]"]' => array(
+            'value' => 'credit'
+          )
+        )
+      ),
+    );
+
+    if (!empty($conf['uc_paylike_method_description'])) {
+      $payment_form['cc_policy']['#markup'] = t($conf['uc_paylike_method_description']);
+    }
+  }
+
+  $products = array();
+  foreach ($order->products as $product) {
+    $products[$product->model] = array(
+      'SKU' => $product->model,
+      'title' => $product->title,
+      'price' => uc_currency_format($product->price),
+      'quantity' => $product->qty,
+    );
+  }
+
+  $title = !empty($conf['uc_paylike_popup_title']) ? $conf['uc_paylike_popup_title'] : $conf['site_name'];
+  $uc_info = system_get_info('module', 'uc_store');
+  $user_mail = isset($user->mail) ? $user->mail : '';
+  $amount =  uc_currency_format($order->order_total, false, false, false);
+  $method_form = &$form['panes']['payment']['payment_method'];
+  if (!empty($conf['uc_paylike_method_title']) && isset($method_form['#options']['credit'])) {
+    $method_form['#options']['credit'] = $conf['uc_paylike_method_title'];
+  }
+
+  // Paylike settings array
+  $settings = array(
+    'public_key' => check_plain(_uc_paylike_get_key('public')),
+    'config' => array(
+      'currency' => $order->currency,
+      'amount' => $amount,
+      'locale' => $language->language,
+      'title' => $title,
+      'descriptor' => t("Order #@order_id", array("@order_id" => $order->order_id)),
+      'custom' => array(
+        'email' => $user_mail,
+        'orderId' => $order->order_id,
+        'products' => $products,
+        'customer' => array(
+          'email' => $user_mail,
+          'IP' => ip_address(),
+          // Fill these fields via js (information is empty at this moment)
+          'name' => '',
+          'phoneNo' => '',
+          'address' => '',
+        ),
+        'platform' => array(
+          'name' => 'Drupal',
+          'version' => VERSION,
+        ),
+        'ecommerce' => array(
+          'name' => 'Ubercart',
+          'version' => $uc_info['version'],
+        ),
+        // 'paylikePluginVersion' => '', // TODO: which version? PHP SDK or JS?
+      ),
+    ),
+  );
+
+  $form['#attached']['js']['https://sdk.paylike.io/3.js'] = array('type' => 'external');
+  $form['#attached']['js'][] = array('data' => array('uc_paylike' => $settings), 'type' => 'setting');
+  $form['#attached']['js'][] = drupal_get_path('module', 'uc_paylike') . '/uc_paylike.js';
+  $form['#attached']['css'][] = drupal_get_path('module', 'uc_paylike') . '/uc_paylike.css';
+
+  // Hidden field to store transaction ID
+  $form['paylike_transaction'] = array(
+    '#type' => 'hidden',
+    '#attributes' => array(
+      'id' => 'paylike_transaction',
+    ),
+    '#default_value' => isset($order->data['transaction_id']) ? $order->data['transaction_id'] : '',
+  );
+  $form['#validate'][] = 'uc_paylike_checkout_validate';
+  $form['#submit'][] = 'uc_paylike_checkout_submit';
+}
+
+/**
+ * Implements hook_ajax_render_alter().
+ */
+function uc_paylike_ajax_render_alter(&$commands) {
+  // Dynamically update amount value in JS config
+  $order = uc_order_load($_SESSION['cart_order']);
+  if (isset($order->order_id)) {
+    $settings = array(
+      'config' => array(
+        'amount' => uc_currency_format($order->order_total, false, false, false),
+      ),
+    );
+    $commands[] = ajax_command_settings(array('uc_paylike' => $settings), true);
+  }
+}
+
+/**
+ * Validates form.
+ */
+function uc_paylike_checkout_validate($form, &$form_state) {
+  $vals = &$form_state['values'];
+
+  // Do not validate if not credit card method selected
+  if ($vals['panes']['payment']['payment_method'] != 'credit') return;
+
+  $library = libraries_load('paylike');
+  if (isset($library['error'])) {
+    form_set_error('Paylike', t($library['error message']));
+  }
+
+  if (!isset($vals['paylike_transaction']) || empty($vals['paylike_transaction'])) {
+    form_set_error('Paylike', t('Paylike payment information not found.'));
+  }
+}
+
+/**
+ * Submit handler.
+ * @param $form
+ * @param $form_state
+ * @throws \Exception
+ */
+function uc_paylike_checkout_submit($form, $form_state) {
+  $vals = $form_state['values'];
+
+  $transaction_id = $vals['paylike_transaction'];
+  $transaction = _uc_paylike_transaction_load($transaction_id);
+  if ($transaction && $transaction['successful']) {
+    $card = $transaction['card'];
+    $order = $form_state['storage']['order'];
+
+    // Update card info from transaction
+    $expiry = new DateTime($card['expiry']);
+    $order->payment_details['cc_exp_month'] = $expiry->format('n');
+    $order->payment_details['cc_exp_year'] = $expiry->format('Y');
+    $order->payment_details['cc_number'] = '555555555555' . $card['last4'];
+    $order->data['transaction_id'] = $transaction_id;
+    uc_order_save($order);
+  }
+}
+
+/**
+ * Complete the order.
+ */
+function uc_paylike_charge($order_id, $amount, $data) {
+  $order = uc_order_load($order_id);
+  $user = user_load($order->uid);
+
+  // Convert amount to minor units
+  $amount = uc_currency_format($amount, false, false, false);
+  // Immediate or delayed mode
+  $transaction_type = isset($data['txn_type']) ? $data['txn_type'] : UC_CREDIT_AUTH_CAPTURE;
+
+  try {
+    // Get a transaction id
+    switch ($transaction_type) {
+      case UC_CREDIT_PRIOR_AUTH_CAPTURE:
+      case UC_CREDIT_VOID:
+        $transaction_id = $data['auth_id'];
+        break;
+      case UC_CREDIT_AUTH_CAPTURE:
+      case UC_CREDIT_AUTH_ONLY:
+        $transaction_id = $order->data['transaction_id'];
+        break;
+    }
+
+    if (!isset($transaction_id) || empty($transaction_id)) {
+      throw new Exception('Paylike transaction not found.');
+    }
+
+    switch ($transaction_type) {
+      // Capture
+      case UC_CREDIT_PRIOR_AUTH_CAPTURE:
+      case UC_CREDIT_AUTH_CAPTURE:
+        $transaction = _uc_paylike_transaction_capture($transaction_id, $amount);
+        if ($transaction['successful']) {
+          $amount = uc_currency_format($transaction['capturedAmount'] / 100);
+          $result = array(
+            'success' => true,
+            'comment' => t('Payment of @amount processed successfully. Transaction ID: @id', array('@id' => $transaction['id'], '@amount' => $amount)),
+            'message' => t('Payment of @amount processed successfully.', array('@amount' => $amount)),
+          );
+          $order_status = 'payment_received';
+        } else {
+          throw new Exception($transaction['error']);
+        }
+        break;
+      // Authorize
+      case UC_CREDIT_AUTH_ONLY:
+        $transaction = _uc_paylike_transaction_load($transaction_id);
+        if ($transaction['successful']) {
+          $result = array(
+            'success' => true,
+            'comment' => t('The order successfully created and ready for capture. Transaction ID: @id', array('@id' => $transaction['id'])),
+            'message' => t('The order successfully created and will be processed soon.'),
+            'log_payment' => false, // disable Ubercart payment logging for authorizations
+          );
+          $order_status = 'processing';
+        } else {
+          throw new Exception($transaction['error']);
+        }
+        break;
+      // Void
+      case UC_CREDIT_VOID:
+        $transaction = _uc_paylike_transaction_void($transaction_id, $amount);
+        if ($transaction['successful']) {
+          $result = array(
+            'success' => true,
+            'comment' => t('The order voided. Transaction ID: @id', array('@id' => $transaction['id'])),
+            'message' => t('The order voided.'),
+            'log_payment' => false, // disable Ubercart payment logging for void
+          );
+          $order_status = 'canceled';
+        } else {
+          throw new Exception($transaction['error']);
+        }
+        break;
+      default:
+        throw new Exception('Incorrect transaction type.');
+    }
+
+    // Store transaction for Ubercart administration needs
+    $order->data['cc_txns']['authorizations'][$transaction_id] = array(
+      'captured' => $transaction['capturedAmount'] / 100,
+      'authorized' => strtotime($transaction['created']),
+      'amount' => $transaction['amount'] / 100,
+    );
+    uc_order_save($order);
+  } catch (Exception $e) {
+    $result = array(
+      'success' => false,
+      'comment' => t('Payment failed. @error', array('@error' => $e->getMessage())),
+      'message' => t('Payment failed. @error', array('@error' => $e->getMessage())),
+    );
+    $order_status = 'pending';
+  }
+
+  uc_order_comment_save($order_id, $user->uid, $result['comment'], 'admin', $order_status);
+  uc_order_comment_save($order->order_id, $user->uid, $result['message'], 'order', $order_status);
+
+  return $result + array(
+      'uid' => $user->uid,
+      'order_id' => $order_id,
+    );
+}
+
+/**
+ * Loads Paylike library
+ * @return \Paylike\Paylike
+ * @throws \Paylike\Exception\ApiException
+ */
+function _uc_paylike_library_get() {
+  libraries_load('paylike');
+  $key = _uc_paylike_get_key('private');
+  $paylike = new \Paylike\Paylike($key);
+  return $paylike;
+}
+
+/**
+ * Loads Paylike transaction.
+ * @param $id
+ * @return array|bool
+ */
+function _uc_paylike_transaction_load($id) {
+  try {
+    $paylike = _uc_paylike_library_get();
+    $transactions = $paylike->transactions();
+    $transaction = $transactions->fetch($id);
+    return $transaction;
+  } catch (\Paylike\Exception\ApiException $e) {
+    watchdog('uc_paylike', t('Transaction @id not found. @message', array('@id' => $id, '@message' => $e->getMessage())));
+    return false;
+  }
+}
+
+/**
+ * Captures an amount of money from transaction.
+ * @param $id
+ * @param $amount
+ * @return array
+ */
+function _uc_paylike_transaction_capture($id, $amount) {
+  try {
+    $paylike = _uc_paylike_library_get();
+    $transactions = $paylike->transactions();
+    $transaction = $transactions->capture($id, array('amount' => $amount));
+    return $transaction;
+  } catch (\Paylike\Exception\ApiException $e) {
+    watchdog('uc_paylike', t('Transaction @id capture failed. @message', array('@id' => $id, '@message' => $e->getMessage())));
+    return array(
+      'successful' => false,
+      'error' => $e->getMessage(),
+    );
+  }
+}
+
+/**
+ * Void an amount of money from transaction.
+ * @param $id
+ * @param $amount
+ *
+ * @return array
+ */
+function _uc_paylike_transaction_void($id, $amount) {
+  try {
+    $paylike = _uc_paylike_library_get();
+    $transactions = $paylike->transactions();
+    $transaction = $transactions->void($id, array('amount' => $amount));
+    return $transaction;
+  } catch (\Paylike\Exception\ApiException $e) {
+    watchdog('uc_paylike', t('Transaction @id void failed. @message', array('@id' => $id, '@message' => $e->getMessage())));
+    return array(
+      'successful' => false,
+      'error' => $e->getMessage(),
+    );
+  }
+}
+
+/**
+ * Refunds an amount.
+ * @param $id
+ * @param $amount
+ * @return array
+ */
+function _uc_paylike_transaction_refund($id, $amount) {
+  try {
+    $paylike = _uc_paylike_library_get();
+    $transactions = $paylike->transactions();
+    $transaction = $transactions->refund($id, array('amount' => $amount));
+    return $transaction;
+  } catch (\Paylike\Exception\ApiException $e) {
+    watchdog('uc_paylike', t('Transaction @id refund failed. @message', array('@id' => $id, '@message' => $e->getMessage())));
+    return array(
+      'successful' => false,
+      'error' => $e->getMessage(),
+    );
+  }
+}
+
+/**
+ * Returns a status of Paylike gateway.
+ * @return bool
+ */
+function _uc_paylike_is_enabled() {
+  if (variable_get('uc_pg_uc_paylike_enabled', false)) {
+    $gateway = uc_credit_default_gateway();
+    if ($gateway == 'uc_paylike') {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Returns needed key.
+ * @param string $type
+ * @return string
+ */
+function _uc_paylike_get_key($type) {
+  $mode = variable_get('uc_paylike_test_mode', true);
+  $mode = $mode ? 'test' : 'live';
+  $variable_name = 'uc_paylike_api_key_'. $mode .'_' . $type;
+  return variable_get($variable_name, '');
+}

@@ -1,0 +1,14 @@
+form input.form-disabled,
+form input.form-disabled:hover,
+form input.form-disabled:focus,
+form input.form-disabled:active {
+  background: #ededed;
+  border-color: #bbb;
+  color: #717171;
+}
+
+.form-item-amount label {
+  float: left;
+  width: 10em;
+  margin-right: 1em;
+}
