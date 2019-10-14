@@ -24,7 +24,7 @@ Released under the GPL V3 license: https://opensource.org/licenses/GPL-3.0
 1.  Visit your Ubercart Store Administration page, Configuration
        section, and enable the gateway under the Payment Gateways.
        (admin/store/settings/payment/edit/gateways)
-1. Select the default credit transaction type. This module supports immediate
+1. Select the default credit transaction type. This ˘module supports immediate
        or delayed capture modes. Immediate capture will be done when users confirm
        their orders. In delayed mode administrator should capture the money manually from
        orders administration page (admin/store/orders/view). Select an order and click
