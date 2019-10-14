@@ -37,8 +37,7 @@ Released under the GPL V3 license: https://opensource.org/licenses/GPL-3.0
        to use the command:
 
        `drush ldl paylike`
-
-       If you don't use `drush ldl paylike`, download and install the Paylike library in
+    If you don't use `drush ldl paylike`, download and install the Paylike library in
        `sites/all/libraries/paylike` such that the path to `composer.json`
        is `sites/all/libraries/paylike/composer.json`. YOU MUST CLEAR THE CACHE AFTER
        CHANGING THE PAYLIKE PHP LIBRARY. The Libraries module caches its memory of
