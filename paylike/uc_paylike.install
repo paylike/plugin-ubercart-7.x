@@ -1,0 +1,20 @@
+<?php
+
+/**
+ * Implements hook_uninstall().
+ */
+function uc_paylike_uninstall() {
+  $variables = array(
+    'uc_paylike_test_mode',
+    'uc_paylike_api_key_test_public',
+    'uc_paylike_api_key_test_private',
+    'uc_paylike_api_key_live_public',
+    'uc_paylike_api_key_live_private',
+    'uc_paylike_method_title',
+    'uc_paylike_method_description',
+    'uc_paylike_popup_title',
+  );
+  foreach ($variables as $variable) {
+    variable_del($variable);
+  }
+}
