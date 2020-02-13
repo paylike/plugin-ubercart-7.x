@@ -10,20 +10,20 @@ function uc_paylike_libraries_info() {
     'name' => 'Paylike PHP Library',
     'vendor url' => 'https://paylike.io',
     'download url' => 'https://github.com/paylike/php-api/releases',
-    'download file url' => 'https://github.com/paylike/php-api/archive/v1.0.4.tar.gz',
+    'download file url' => 'https://github.com/paylike/php-api/archive/v1.0.5.tar.gz',
     'version arguments' => array(
       'file' => 'composer.json',
       'pattern' => '/"version": "(\d+\.\d+\.\d+)"/',
       'lines' => 4,
     ),
     'versions' => array(
-      '1.0.4' => array(
+      '1.0.5' => array(
         'files' => array(
           'php' => array(
             'init.php',
           )
         ),
-        'paylike_api_version' => '2018-12-05'
+        'paylike_api_version' => '2019-10-17'
       )
     ),
   );
@@ -163,7 +163,7 @@ function uc_paylike_form_uc_cart_checkout_form_alter(&$form, &$form_state, $form
           'name' => 'Ubercart',
           'version' => $uc_info['version'],
         ),
-        // 'paylikePluginVersion' => '', // TODO: which version? PHP SDK or JS?
+        'paylikePluginVersion' => '1.0.5', // TODO: which version? PHP SDK or JS?
       ),
     ),
   );

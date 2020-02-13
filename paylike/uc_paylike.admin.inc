@@ -15,26 +15,26 @@ function uc_paylike_settings_form() {
   );
   $form['uc_paylike_settings']['uc_paylike_api_key_test_public'] = array(
     '#type' => 'textfield',
-    '#title' => t('Test Public Key'),
+    '#title' => t('Test mode Public Key'),
     '#default_value' => variable_get('uc_paylike_api_key_test_public', ''),
     '#description' => t('Your Development Paylike Public API Key.'),
   );
   $form['uc_paylike_settings']['uc_paylike_api_key_test_private'] = array(
     '#type' => 'textfield',
-    '#title' => t('Test Secret Key'),
+    '#title' => t('Test mode App Key'),
     '#default_value' => variable_get('uc_paylike_api_key_test_private', ''),
     '#description' => t('Your Development Paylike Private API Key. An API key can be obtained by creating a merchant and adding an app through Paylike <a href="@dashboard" target="_blank">dashboard</a>.', array('@dashboard' => 'https://app.paylike.io/')),
   );
 
   $form['uc_paylike_settings']['uc_paylike_api_key_live_public'] = array(
     '#type' => 'textfield',
-    '#title' => t('Live Public Key'),
+    '#title' => t('Live mode Public Key'),
     '#default_value' => variable_get('uc_paylike_api_key_live_public', ''),
     '#description' => t('Your Live Paylike Public API Key.'),
   );
   $form['uc_paylike_settings']['uc_paylike_api_key_live_private'] = array(
     '#type' => 'textfield',
-    '#title' => t('Live Secret Key'),
+    '#title' => t('Live mode App Key'),
     '#default_value' => variable_get('uc_paylike_api_key_live_private', ''),
     '#description' => t('Your Live Paylike Private API Key. An API key can be obtained by creating a merchant and adding an app through Paylike <a href="@dashboard" target="_blank">dashboard</a>.', array('@dashboard' => 'https://app.paylike.io/')),
   );
