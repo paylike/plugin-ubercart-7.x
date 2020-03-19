@@ -142,7 +142,6 @@ function uc_paylike_form_uc_cart_checkout_form_alter(&$form, &$form_state, $form
       'amount' => $amount,
       'locale' => $language->language,
       'title' => $title,
-      'descriptor' => t("Order #@order_id", array("@order_id" => $order->order_id)),
       'custom' => array(
         'email' => $user_mail,
         'orderId' => $order->order_id,
@@ -163,7 +162,7 @@ function uc_paylike_form_uc_cart_checkout_form_alter(&$form, &$form_state, $form
           'name' => 'Ubercart',
           'version' => $uc_info['version'],
         ),
-        'paylikePluginVersion' => '1.0.5', // TODO: which version? PHP SDK or JS?
+        'paylikePluginVersion' => '1.0.5',
       ),
     ),
   );

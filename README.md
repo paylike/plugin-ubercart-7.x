@@ -19,7 +19,7 @@ Released under the GPL V3 license: https://opensource.org/licenses/GPL-3.0
   Signup at (paylike.io) [https://paylike.io] (it’s free)
 1. Create a live account
 1. Create an app key for your Drupal website
-1. Upload the ```paylike.zip``` trough the Drupal Admin
+1. Upload the ```paylike.zip``` trough the Drupal Admin (You can also find the latest release at https://www.drupal.org/project/uc_paylike)
 1. Activate the plugin through the 'Modules' screen in Drupal.
 1.  Visit your Ubercart Store Administration page, Configuration
        section, and enable the gateway under the Payment Gateways.

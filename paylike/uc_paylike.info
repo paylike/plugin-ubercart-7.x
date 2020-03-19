@@ -6,4 +6,3 @@ dependencies[] = libraries
 package = Ubercart - payment
 core = 7.x
 php = 5.3
-version = "7.x-0.1"
