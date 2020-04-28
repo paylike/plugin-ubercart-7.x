@@ -1,4 +1,4 @@
-# Ubercart plugin for Paylike
+# Ubercart plugin for Paylike [![Build Status](https://travis-ci.org/paylike/plugin-ubercart-7.x.svg?branch=master)](https://travis-ci.org/paylike/plugin-ubercart-7.x)
 
 This plugin is *not* developed or maintained by Paylike but kindly made
 available by a user.
@@ -7,11 +7,9 @@ Released under the GPL V3 license: https://opensource.org/licenses/GPL-3.0
 
 ## Supported Ubercart versions
 
+[![Last succesfull test](https://log.derikon.ro/api/v1/log/read?tag=ubercart7&view=svg&label=Ubercart&key=ecommerce&background=e09e03)](https://log.derikon.ro/api/v1/log/read?tag=ubercart7&view=html)
+
 *The plugin has been tested with most versions of Ubercart at every iteration. We recommend using the latest version of Ubercart, but if that is not possible for some reason, test the plugin with your Ubercart version and it would probably function properly.*
-
-* Ubercart
- version last tested on: *7.x-3.12* on Drupal 7.67
-
 
 ## Installation
 
