@@ -56,8 +56,6 @@ class UbercartTestHelper
         if ($url != $this->wd->getCurrentURL()) {
             $this->wd->get($this->helperGetUrl($pagePath, $is_admin));
         }
-
-
         // wait for the element to be visible before we send input
         try {
             if ($waitForSelector) {

@@ -18,6 +18,16 @@ Once you have installed Ubercart on your Drupal setup, follow these simple steps
 1. Create a live account
 1. Create an app key for your Drupal website
 1. Upload the ```paylike.zip``` trough the Drupal Admin (You can also find the latest release at https://www.drupal.org/project/uc_paylike)
+1. Download and install the Paylike PHP Library version 1.0.4 or newer
+       from https://github.com/paylike/php-api/releases. The recommended technique is
+       to use the command:
+
+       `drush ldl paylike`
+    If you don't use `drush ldl paylike`, download and install the Paylike library in
+       `sites/all/libraries/paylike` such that the path to `composer.json`
+       is `sites/all/libraries/paylike/composer.json`. YOU MUST CLEAR THE CACHE AFTER
+       CHANGING THE PAYLIKE PHP LIBRARY. The Libraries module caches its memory of
+       libraries like the Paylike Library.
 1. Activate the plugin through the 'Modules' screen in Drupal.
 1.  Visit your Ubercart Store Administration page, Configuration
        section, and enable the gateway under the Payment Gateways.
@@ -30,18 +40,7 @@ Once you have installed Ubercart on your Drupal setup, follow these simple steps
        block to manually capture a needed amount of money.
 1. Insert Paylike API keys, from https://app.paylike.io
        (admin/store/settings/payment/method/credit)
-1. Download and install the Paylike PHP Library version 1.0.4 or newer
-       from https://github.com/paylike/php-api/releases. The recommended technique is
-       to use the command:
-
-       `drush ldl paylike`
-    If you don't use `drush ldl paylike`, download and install the Paylike library in
-       `sites/all/libraries/paylike` such that the path to `composer.json`
-       is `sites/all/libraries/paylike/composer.json`. YOU MUST CLEAR THE CACHE AFTER
-       CHANGING THE PAYLIKE PHP LIBRARY. The Libraries module caches its memory of
-       libraries like the Paylike Library.
-
- 1. The uc_credit setting "Validate credit card numbers at checkout" must be
+1. The uc_credit setting "Validate credit card numbers at checkout" must be
     disabled on `admin/store/settings/payment/method/credit` - uc_credit never sees
     the credit card number, so cannot properly validate it (and we don't want it to
     ever know the credit card number.)
