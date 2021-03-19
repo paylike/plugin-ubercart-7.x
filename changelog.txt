@@ -1,0 +1,50 @@
+# Changelog
+All notable changes to this project will be documented in this file.
+
+
+## 1.0.10 - 2021-03-19
+### Added
+- "changelog.txt" file for this plugin
+### Changed
+- external JavaScript file import from '3.js' to '6.js' in includes\modules\payment\paylike\paylike.php file
+
+## 1.0.9 - 2020-06-23
+### Updated
+- The README.md file
+-  .travis.yml file
+
+## 1.0.8 - 2020-05-08
+### Updated
+- Update .travis.yml - changed dist trusty to xenial
+
+## 1.0.7 - 2020-05-08
+### Updated
+- The README.md file
+
+## 1.0.6 - 2020-04-28
+### Added
+- Testing units
+
+## 1.0.5 - 2020-03-19
+### Minor changes
+- Removed descriptor, linked marketplace
+- added paylike plugin version
+
+## 1.0.4 - 2020-02-13
+### Changes
+- Updated admin label names to match standard
+
+## 1.0.3 - 2020-10-14
+### Minor changes
+- moved plugin files to paylike folder
+
+## 1.0.2 - 2019-10-09
+### Changed
+- The README.md file
+### Added
+- Initial plugin files
+
+## 1.0.1 - 2019-09-30
+### Added
+- The README.md file
+- The LICENSE.txt file
