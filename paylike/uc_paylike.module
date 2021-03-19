@@ -167,7 +167,7 @@ function uc_paylike_form_uc_cart_checkout_form_alter(&$form, &$form_state, $form
     ),
   );
 
-  $form['#attached']['js']['https://sdk.paylike.io/3.js'] = array('type' => 'external');
+  $form['#attached']['js']['https://sdk.paylike.io/6.js'] = array('type' => 'external');
   $form['#attached']['js'][] = array('data' => array('uc_paylike' => $settings), 'type' => 'setting');
   $form['#attached']['js'][] = drupal_get_path('module', 'uc_paylike') . '/uc_paylike.js';
   $form['#attached']['css'][] = drupal_get_path('module', 'uc_paylike') . '/uc_paylike.css';
