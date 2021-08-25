@@ -50,17 +50,32 @@ Once you have installed Ubercart on your Drupal setup, follow these simple steps
 Under the Paylike payment method settings, you can:
  * Update the payment method text in the payment gateways list
  * Update the payment method description in the payment gateways list
- * Update the title that shows up in the payment popup 
+ * Update the title that shows up in the payment popup
  * Add test/live keys
  * Set payment mode (test/live)
  * Change the capture type (Instant/Delayed)
- 
- ## How to
- 
+
+ ## How to capture/refund/void
+
+You can do capture/refund/void to an order using the Payment box in the order View Tab by press `Process card` button.
+The amount for partial capture, refund or void can be specified in `Charge Amount` input field.
+
  1. Capture
- * In Instant mode, the orders are captured automatically
- * In delayed mode you can capture an order by using the Payment box in the View Tab
+ * In Instant mode, the orders are captured automatically.
+ * In delayed mode you can capture an order select authorized transaction and then click `Capture amount to this authorization` button.
  2. Refund
-   * To refund an order move you can use the Payment box in the View Tab. Click process card and then refund.
+   * To refund an order select authorized transaction and then click `Refund` button.
  3. Void
-   * To void an order move you can use the Payment box in the View Tab. Click process card and then void.
+   * To void an order select authorized transaction and then click `Void authorization` button.
+
+## Available features
+
+1. Capture
+   * Opencart admin panel: full/partial capture
+   * Paylike admin panel: full/partial capture
+2. Refund
+   * Opencart admin panel: full/partial refund
+   * Paylike admin panel: full/partial refund
+3. Void
+   * Opencart admin panel: full/partial void
+   * Paylike admin panel: full/partial void

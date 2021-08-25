@@ -23,8 +23,13 @@
             $('#payment-details').prepend('<div class="messages error">' + Drupal.t('Configure Paylike settings please') + '</div>');
             return;
           }
-          var paylike = Paylike(settings.uc_paylike.public_key),
-            config = settings.uc_paylike.config;
+
+          var paylike = Paylike({key: settings.uc_paylike.public_key});
+          
+          config = settings.uc_paylike.config;
+
+          /** Create/place amount object in config object. */
+          config.amount = settings.uc_paylike.amount;
 
           // Get customer information from delivery or billing pane
           var customer = {
@@ -42,7 +47,8 @@
           config.custom.customer.name = customer.last_name + ' ' + customer.first_name;
           config.custom.customer.phoneNo = customer.phone;
           config.custom.customer.address = customer.address1 + ' ' + customer.address2;
-          paylike.popup(config, handleResponse);
+
+          paylike.pay(config, handleResponse);
         });
       });
 
