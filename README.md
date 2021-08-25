@@ -71,11 +71,11 @@ The amount for partial capture, refund or void can be specified in `Charge Amoun
 ## Available features
 
 1. Capture
-   * Opencart admin panel: full/partial capture
+   * Ubercart store admin panel: full/partial capture
    * Paylike admin panel: full/partial capture
 2. Refund
-   * Opencart admin panel: full/partial refund
+   * Ubercart store admin panel: full/partial refund
    * Paylike admin panel: full/partial refund
 3. Void
-   * Opencart admin panel: full/partial void
+   * Ubercart store admin panel: full/partial void
    * Paylike admin panel: full/partial void
