@@ -22,8 +22,8 @@
  * Enhanced with auth for HTTP protected websites
  */
  Cypress.Commands.add('goToPage', (pageUrl) => {
-     /** Check if pageUrl is an URI for admin, then add admin url to it. */
-    if (pageUrl.match(/(\/index\.php\?)/g)) {
+     /** Check if pageUrl is NOT a ful url, then add admin url to it. */
+    if (! pageUrl.match(/^http/g)) {
         pageUrl = Cypress.env('ENV_ADMIN_URL') + pageUrl;
     }
 
@@ -33,6 +33,7 @@
                 username: Cypress.env('ENV_HTTP_USER'),
                 password: Cypress.env('ENV_HTTP_PASS'),
             },
+            failOnStatusCode: false // used in ubercart, direct access to admin results in 403 code
         });
     } else {
         cy.visit(pageUrl);
