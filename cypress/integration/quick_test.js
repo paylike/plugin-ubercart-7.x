@@ -26,12 +26,13 @@ describe('paylike plugin quick test', () => {
     });
 
     let currency = Cypress.env('ENV_CURRENCY_TO_CHANGE_WITH');
+    let captureMode = 'Delayed';
 
     /**
      * Modify Paylike capture mode
      */
     it('modify Paylike settings for capture mode', () => {
-        TestMethods.changePaylikeCaptureMode();
+        TestMethods.changePaylikeCaptureMode(captureMode);
     });
 
     /**

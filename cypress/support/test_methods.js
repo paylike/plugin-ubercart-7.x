@@ -10,7 +10,6 @@ export var TestMethods = {
     StoreUrl: (Cypress.env('ENV_ADMIN_URL').match(/^(?:http(?:s?):\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:\/\n?]+)/im))[0],
     AdminUrl: Cypress.env('ENV_ADMIN_URL'),
     RemoteVersionLogUrl: Cypress.env('REMOTE_LOG_URL'),
-    CaptureMode: 'Delayed',
 
     /** Construct some variables to be used bellow. */
     ShopName: 'ubercart7',
@@ -29,16 +28,22 @@ export var TestMethods = {
 
     /**
      * Modify Paylike settings
+     * @param {String} captureMode
      */
-    changePaylikeCaptureMode() {
+    changePaylikeCaptureMode(captureMode) {
         /** Go to payments page, and select Paylike. */
         cy.goToPage(this.PaymentMethodsAdminUrl);
 
         /** Select paylike & config its settings. */
         cy.get('a strong').contains(this.PaylikeName, {matchCase: false}).click();
 
-        /** Change capture mode to delayed & save. */
-        cy.get('#edit-uc-pg-uc-paylike-cc-txn-type-authorize').click();
+        /** Change capture mode & save. */
+        if ('Instant' === captureMode) {
+            cy.get('#edit-uc-pg-uc-paylike-cc-txn-type-auth-capture').click();
+        } else if ('Delayed' === captureMode) {
+            cy.get('#edit-uc-pg-uc-paylike-cc-txn-type-authorize').click();
+        }
+
         cy.get('#edit-submit').click();
     },
 
