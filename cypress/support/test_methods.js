@@ -156,72 +156,45 @@ export var TestMethods = {
      paylikeActionOnOrderAmount(paylikeAction, partialAmount = false) {
         cy.get('#edit-submit').click();
 
-        if (true === partialAmount) {
-            this.partialActionOnOrder(paylikeAction);
-            /**
-             * Jump to next function call.
-             * We do not need any action after this.
-             */
-            return;
-        }
-
         switch (paylikeAction) {
             case 'capture':
+                if (partialAmount) {
+                    cy.get('#edit-amount').then($editAmountInput => {
+                        var totalAmount = $editAmountInput.val();
+                        /** Subtract 10 major units from amount. */
+                        $editAmountInput.val(Math.round(totalAmount - 10));
+                    });
+                }
                 /** Select authorized/captured transaction. */
                 cy.get('input[name=select_auth]').click();
                 cy.get('#edit-auth-capture').click();
                 break;
             case 'refund':
+                if (partialAmount) {
+                    cy.get('#edit-amount').then($editAmountInput => {
+                        /**
+                         * Put 15 major units to be refunded.
+                         * Premise: any product must have price >= 15.
+                         */
+                        $editAmountInput.val(15);
+                    });
+                }
                 /** Select authorized/captured transaction. */
                 cy.get('input[name=refund_transaction]').click();
                 cy.get('#edit-refund').click();
                 break;
             case 'void':
+                if (partialAmount) {
+                    cy.get('#edit-amount').then($editAmountInput => {
+                        /**
+                         * Put 15 major units to be voided.
+                         * Premise: any product must have price >= 15.
+                         */
+                        $editAmountInput.val(15);
+                    });
+                }
                 /** Select authorized/captured transaction. */
                 cy.get('input[name=select_auth]').click();
-                cy.get('#edit-auth-void').click();
-                break;
-        }
-
-        /** Check if success message. */
-        cy.get('#console div.messages.status').should('contain', 'successfully');
-    },
-
-    /**
-     * Make partial capture/refund/void on selected order
-     * @param {String} paylikeAction
-     */
-    partialActionOnOrder(paylikeAction) {
-        switch (paylikeAction) {
-            case 'capture':
-                cy.get('input[id=edit-amount]').then($editAmountInput => {
-                    var totalAmount = $editAmountInput.val();
-                    /** Subtract 10 major units from amount. */
-                    $editAmountInput.val(Math.round(totalAmount - 10));
-                });
-                /** Submit partial capture. */
-                cy.get('#edit-charge-card').click();
-                break;
-            case 'refund':
-                cy.get('input[id=edit-amount]').then($editAmountInput => {
-                    /**
-                     * Put 15 major units to be refunded.
-                     * Premise: any product must have price >= 15.
-                     */
-                    $editAmountInput.val(15);
-                });
-                /** Submit partial refund. */
-                cy.get('#edit-refund').click();
-                break;
-            case 'void':
-                cy.get('input[id=edit-amount]').then($editAmountInput => {
-                    /**
-                     * Put 15 major units to be voided.
-                     * Premise: any product must have price >= 15.
-                     */
-                    $editAmountInput.val(15);
-                });
-                /** Submit partial void. */
                 cy.get('#edit-auth-void').click();
                 break;
         }
