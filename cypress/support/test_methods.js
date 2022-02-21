@@ -13,11 +13,12 @@ export var TestMethods = {
     CaptureMode: 'Delayed',
 
     /** Construct some variables to be used bellow. */
-    ShopName: 'ubercart',
+    ShopName: 'ubercart7',
     PaylikeName: 'paylike',
     ShopAdminUrl: '/store/settings/store', // used for change currency
     PaymentMethodsAdminUrl: '/store/settings/payment/method/credit',
     OrdersPageAdminUrl: '/store/orders/view',
+    ModulesAdminUrl: '/modules',
 
     /**
      * Login to admin backend account
@@ -155,65 +156,72 @@ export var TestMethods = {
      paylikeActionOnOrderAmount(paylikeAction, partialAmount = false) {
         cy.get('#edit-submit').click();
 
-        if ('capture' === paylikeAction && partialAmount) {
-            cy.get('input[id=edit-amount]').then($editAmountInput => {
-                var totalAmount = $editAmountInput.val();
-                /** Subtract 10 major units from amount. */
-                $editAmountInput.val(Math.round(totalAmount - 10));
-            });
-            /** Submit partial capture. */
-            cy.get('#edit-charge-card').click();
-
-            /** Check if success message. */
-            cy.get('#console div.messages.status').should('contain', 'successfully');
-
-            /** Jump to next function call. We do not need any action after this. */
-            return;
-        } else if ('refund' === paylikeAction && partialAmount) {
-            cy.get('input[id=edit-amount]').then($editAmountInput => {
-                /**
-                 * Put 15 major units to be refunded.
-                 * Premise: any product must have price >= 15.
-                 */
-                $editAmountInput.val(15);
-            });
-            /** Submit partial refund. */
-            cy.get('#edit-refund').click();
-
-            /** Check if success message. */
-            cy.get('#console div.messages.status').should('contain', 'successfully');
-
-            /** Jump to next function call. We do not need any action after this. */
-            return;
-        } else if ('void' === paylikeAction && partialAmount) {
-            cy.get('input[id=edit-amount]').then($editAmountInput => {
-                /**
-                 * Put 15 major units to be voided.
-                 * Premise: any product must have price >= 15.
-                 */
-                $editAmountInput.val(15);
-            });
-            /** Submit partial void. */
-            cy.get('#edit-auth-void').click();
-
-            /** Check if success message. */
-            cy.get('#console div.messages.status').should('contain', 'successfully');
-
-            /** Jump to next function call. We do not need any action after this. */
+        if (true === partialAmount) {
+            this.partialActionOnOrder(paylikeAction);
+            /**
+             * Jump to next function call.
+             * We do not need any action after this.
+             */
             return;
         }
 
-        /** Select authorized/captured transaction. */
-        cy.get('input[name=select_auth]').click();
-
         switch (paylikeAction) {
             case 'capture':
+                /** Select authorized/captured transaction. */
+                cy.get('input[name=select_auth]').click();
                 cy.get('#edit-auth-capture').click();
                 break;
             case 'refund':
+                /** Select authorized/captured transaction. */
+                cy.get('input[name=refund_transaction]').click();
                 cy.get('#edit-refund').click();
                 break;
             case 'void':
+                /** Select authorized/captured transaction. */
+                cy.get('input[name=select_auth]').click();
+                cy.get('#edit-auth-void').click();
+                break;
+        }
+
+        /** Check if success message. */
+        cy.get('#console div.messages.status').should('contain', 'successfully');
+    },
+
+    /**
+     * Make partial capture/refund/void on selected order
+     * @param {String} paylikeAction
+     */
+    partialActionOnOrder(paylikeAction) {
+        switch (paylikeAction) {
+            case 'capture':
+                cy.get('input[id=edit-amount]').then($editAmountInput => {
+                    var totalAmount = $editAmountInput.val();
+                    /** Subtract 10 major units from amount. */
+                    $editAmountInput.val(Math.round(totalAmount - 10));
+                });
+                /** Submit partial capture. */
+                cy.get('#edit-charge-card').click();
+                break;
+            case 'refund':
+                cy.get('input[id=edit-amount]').then($editAmountInput => {
+                    /**
+                     * Put 15 major units to be refunded.
+                     * Premise: any product must have price >= 15.
+                     */
+                    $editAmountInput.val(15);
+                });
+                /** Submit partial refund. */
+                cy.get('#edit-refund').click();
+                break;
+            case 'void':
+                cy.get('input[id=edit-amount]').then($editAmountInput => {
+                    /**
+                     * Put 15 major units to be voided.
+                     * Premise: any product must have price >= 15.
+                     */
+                    $editAmountInput.val(15);
+                });
+                /** Submit partial void. */
                 cy.get('#edit-auth-void').click();
                 break;
         }
@@ -241,52 +249,44 @@ export var TestMethods = {
      * Get Shop & Paylike versions and send log data.
      */
     logVersions() {
-        // /** Go to Virtuemart config page. */
-        // cy.goToPage(this.VirtuemartConfigAdminUrl);
+        /** Go to Virtuemart config page. */
+        cy.goToPage(this.ModulesAdminUrl);
 
-        // /** Get Framework version. */
-        // cy.get('#status.navbar').then(($frameworkVersionFromPage) => {
-        //     var versionText = $frameworkVersionFromPage.text();
-        //     var frameworkVersion = versionText.match(/\d*\.\d*((\.\d*)?)*/g);
-        //     cy.wrap(frameworkVersion[0]).as('frameworkVersion');
-        // });
+        /** Get framework version. */
+        cy.get('#edit-modules-core tbody tr').first().then($frameworkVersion => {
+            var frameworkVersion = $frameworkVersion.children('td:nth-child(3)').text();
+            cy.wrap(frameworkVersion).as('frameworkVersion');
+        });
 
-        // /** Get shop version. */
-        // cy.get('.vm-installed-version').first().then(($shopVersionFromPage) => {
-        //     var versionText = $shopVersionFromPage.text();
-        //     var shopVersion = versionText.replace('VirtueMart ', '');
-        //     cy.wrap(shopVersion).as('shopVersion');
-        // });
+        /** Get shop version. */
+        cy.get('label[for="edit-modules-ubercart-core-uc-store-enable"]').closest('tr').then($shopVersion => {
+            var shopVersion = $shopVersion.children('td:nth-child(3)').text();
+            cy.wrap(shopVersion).as('shopVersion');
+        });
 
-        // /** Go to extensions admin page. */
-        // cy.goToPage(this.ModulesAdminUrl);
+        /** Get paylike version. */
+        cy.get('label[for="edit-modules-ubercart-payment-uc-paylike-enable"]').closest('tr').then($paylikeVersion => {
+            var paylikeVersion = $paylikeVersion.children('td:nth-child(3)').text();
+            cy.wrap(paylikeVersion).as('paylikeVersion');
+        });
 
-        // /** Search for paylike. */
-        // cy.get('#filter_search').clear().type(`${this.PaylikeName}{enter}`);
+        /** Get global variables and make log data request to remote url. */
+        cy.get('@frameworkVersion').then(frameworkVersion => {
+            cy.get('@shopVersion').then(shopVersion => {
+                cy.get('@paylikeVersion').then(paylikeVersion => {
 
-        // cy.get('#manageList tbody tr:nth-child(1) td:nth-child(6)').then($paylikeVersionFromPage => {
-        //     var paylikeVersion = ($paylikeVersionFromPage.text()).replace(/[^0-9.]/g, '');
-        //     /** Make global variable to be accessible bellow. */
-        //     cy.wrap(paylikeVersion).as('paylikeVersion');
-        // });
-
-        // /** Get global variables and make log data request to remote url. */
-        // cy.get('@frameworkVersion').then(frameworkVersion => {
-        //     cy.get('@shopVersion').then(shopVersion => {
-        //         cy.get('@paylikeVersion').then(paylikeVersion => {
-
-        //             cy.request('GET', this.RemoteVersionLogUrl, {
-        //                 key: shopVersion,
-        //                 tag: this.ShopName,
-        //                 view: 'html',
-        //                 framework: frameworkVersion,
-        //                 ecommerce: shopVersion,
-        //                 plugin: paylikeVersion
-        //             }).then((resp) => {
-        //                 expect(resp.status).to.eq(200);
-        //             });
-        //         });
-        //     });
-        // });
+                    cy.request('GET', this.RemoteVersionLogUrl, {
+                        key: shopVersion,
+                        tag: this.ShopName,
+                        view: 'html',
+                        framework: frameworkVersion,
+                        ecommerce: shopVersion,
+                        plugin: paylikeVersion
+                    }).then((resp) => {
+                        expect(resp.status).to.eq(200);
+                    });
+                });
+            });
+        });
     },
 }
