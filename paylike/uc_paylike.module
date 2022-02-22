@@ -2,6 +2,9 @@
 
 module_load_include('inc', 'uc_paylike', 'uc_paylike.admin');
 
+/** Version of Paylike payment plugin for Ubercart 3.x */
+define('PAYLIKE_PLUGIN_VERSION', '7.x-1.2.2');
+
 /**
  * Implements hook_libraries_info().
  */
@@ -10,20 +13,20 @@ function uc_paylike_libraries_info() {
     'name' => 'Paylike PHP Library',
     'vendor url' => 'https://paylike.io',
     'download url' => 'https://github.com/paylike/php-api/releases',
-    'download file url' => 'https://github.com/paylike/php-api/archive/v1.0.5.tar.gz',
+    'download file url' => 'https://github.com/paylike/php-api/archive/v1.0.8.tar.gz',
     'version arguments' => array(
       'file' => 'composer.json',
       'pattern' => '/"version": "(\d+\.\d+\.\d+)"/',
       'lines' => 4,
     ),
     'versions' => array(
-      '1.0.5' => array(
+      '1.0.8' => array(
         'files' => array(
           'php' => array(
             'init.php',
           )
         ),
-        'paylike_api_version' => '2019-10-17'
+        'paylike_api_version' => '2020-09-08'
       )
     ),
   );
@@ -128,18 +131,36 @@ function uc_paylike_form_uc_cart_checkout_form_alter(&$form, &$form_state, $form
   $title = !empty($conf['uc_paylike_popup_title']) ? $conf['uc_paylike_popup_title'] : $conf['site_name'];
   $uc_info = system_get_info('module', 'uc_store');
   $user_mail = isset($user->mail) ? $user->mail : '';
-  $amount =  uc_currency_format($order->order_total, false, false, false);
   $method_form = &$form['panes']['payment']['payment_method'];
   if (!empty($conf['uc_paylike_method_title']) && isset($method_form['#options']['credit'])) {
     $method_form['#options']['credit'] = $conf['uc_paylike_method_title'];
   }
+    /**
+   * Extract exponent from currency.
+   * We use a helper that contain code from paylike/php-api Currencies class.
+   * Includes from library folder not working.
+   */
+  require_once DRUPAL_ROOT . '/sites/all/modules/paylike/uc_paylike_helper.php';
+  $allCurrencies = getAllCurrencies(); // helper function
+  $exponent = (isset($allCurrencies[$order->currency])) ? ($allCurrencies[$order->currency]['exponent']) : (null);
+  $amount =  (int)uc_currency_format($order->order_total, false, false, false);
+  /** Get test module status: if test mode, then return 'true'. */
+  $paylike_test_active_status = (1 === variable_get('uc_paylike_test_mode')) ? true : false;
 
   // Paylike settings array
   $settings = array(
     'public_key' => check_plain(_uc_paylike_get_key('public')),
-    'config' => array(
+    /**
+     * Amount was placed here that we can add later in js file as object.
+     * If we place it in config array here, it will be change to a string as '1000'.
+     */
+    'amount' => [
       'currency' => $order->currency,
-      'amount' => $amount,
+      'exponent' => $exponent,
+      'value' => $amount,
+    ],
+    'config' => array(
+      'test' => $paylike_test_active_status,
       'locale' => $language->language,
       'title' => $title,
       'custom' => array(
@@ -162,12 +183,14 @@ function uc_paylike_form_uc_cart_checkout_form_alter(&$form, &$form_state, $form
           'name' => 'Ubercart',
           'version' => $uc_info['version'],
         ),
-        'paylikePluginVersion' => '1.0.5',
+        'paylikePluginVersion' => [
+          'version' => PAYLIKE_PLUGIN_VERSION,
+        ],
       ),
     ),
   );
 
-  $form['#attached']['js']['https://sdk.paylike.io/3.js'] = array('type' => 'external');
+  $form['#attached']['js']['https://sdk.paylike.io/10.js'] = array('type' => 'external');
   $form['#attached']['js'][] = array('data' => array('uc_paylike' => $settings), 'type' => 'setting');
   $form['#attached']['js'][] = drupal_get_path('module', 'uc_paylike') . '/uc_paylike.js';
   $form['#attached']['css'][] = drupal_get_path('module', 'uc_paylike') . '/uc_paylike.css';
