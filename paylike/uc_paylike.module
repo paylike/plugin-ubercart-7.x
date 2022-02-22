@@ -2,7 +2,7 @@
 
 module_load_include('inc', 'uc_paylike', 'uc_paylike.admin');
 
-/** Version of Paylike payment plugin for Ubercart 4.x */
+/** Version of Paylike payment plugin for Ubercart 3.x */
 define('PAYLIKE_PLUGIN_VERSION', '7.x-1.2.2');
 
 /**
