@@ -20,20 +20,7 @@ export let PaylikeTestHelper = {
      * @return {Number}
      */
      filterAndGetAmountInMinor($unfilteredAmount, currency) {
-        /** Replace any character except numbers, commas, points */
-        var filtered = ($unfilteredAmount.text()).replace(/[^0-9,.]/g, '')
-        var matchPointFirst = filtered.match(/\..*,/g);
-        var matchCommaFirst = filtered.match(/,.*\./g);
-
-        if (matchPointFirst) {
-            var amountAsText = (filtered.replace('.', '')).replace(',', '.');
-        } else if (matchCommaFirst) {
-            var amountAsText = filtered.replace(',', '');
-        } else {
-            var amountAsText = filtered.replace(',', '.');
-        }
-
-        var formattedAmount = parseFloat(amountAsText);
+        var formattedAmount = this.filterAndGetAmountInMajorUnit($unfilteredAmount);
 
         /** Get multiplier based on currency code. */
         var multiplier = PaylikeCurrencies.get_paylike_currency_multiplier(currency);
@@ -47,13 +34,12 @@ export let PaylikeTestHelper = {
      * Get it in currency major unit
      *
      * @param {Object} $unfilteredAmount
-     * @param {String} currency
      *
      * @return {Number}
      */
-     filterAndGetAmountInMajorUnit($unfilteredAmount, currency) {
+     filterAndGetAmountInMajorUnit($unfilteredAmount) {
         /** Replace any character except numbers, commas, points */
-        var filtered = ($unfilteredAmount.text()).replace(/[^0-9,.]/g, '')
+        var filtered = ($unfilteredAmount.text()).replace(/[^0-9,.][a-z.]*/g, '')
         var matchPointFirst = filtered.match(/\..*,/g);
         var matchCommaFirst = filtered.match(/,.*\./g);
 

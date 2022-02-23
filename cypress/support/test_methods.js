@@ -212,15 +212,17 @@ export var TestMethods = {
      * Change shop currency from admin
      */
     changeShopCurrencyFromAdmin(currency) {
-        /** Go to edit shop page. */
-        cy.goToPage(this.ShopAdminUrl);
+        it(`Change shop currency from admin to "${currency}"`, () => {
+            /** Go to edit shop page. */
+            cy.goToPage(this.ShopAdminUrl);
 
-        /** Select currency & save. */
-        cy.get('.vertical-tabs-list li:nth-child(3)').click();
+            /** Select currency & save. */
+            cy.get('.vertical-tabs-list li:nth-child(3)').click();
 
-        cy.get('#edit-uc-currency-code').clear().type(currency);
-        cy.get('#edit-uc-currency-sign').clear().type(currency);
-        cy.get('#edit-submit').click();
+            cy.get('#edit-uc-currency-code').clear().type(currency);
+            cy.get('#edit-uc-currency-sign').clear().type(currency);
+            cy.get('#edit-submit').click();
+        });
     },
 
     /**
