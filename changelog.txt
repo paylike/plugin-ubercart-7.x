@@ -2,7 +2,7 @@
 All notable changes to this project will be documented in this file.
 
 
-## 1.2.2 - 2022-02-21
+## 1.3.0 - 2022-02-21
 ### Fix bugs
 - Paylike popup amount differ with 0.01 from order amount
 - Added paylike version to be displayed in modules table
