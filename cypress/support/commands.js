@@ -33,7 +33,7 @@
                 username: Cypress.env('ENV_HTTP_USER'),
                 password: Cypress.env('ENV_HTTP_PASS'),
             },
-            failOnStatusCode: false // used in ubercart, direct access to admin results in 403 code
+            failOnStatusCode: false // used when direct access to admin results in 403 code
         });
     } else {
         cy.visit(pageUrl);
