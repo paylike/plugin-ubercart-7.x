@@ -232,6 +232,8 @@ function uc_paylike_refund_form_submit($form, $form_state) {
       );
       // Update order info
       $transaction_data['refunded'] = $transaction_data['captured'];
+      // set order status & save
+      $order->order_status = 'canceled';
       uc_order_save($order);
     } else {
       throw new Exception($transaction['error']);

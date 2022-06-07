@@ -3,7 +3,7 @@
 module_load_include('inc', 'uc_paylike', 'uc_paylike.admin');
 
 /** Version of Paylike payment plugin for Ubercart 3.x */
-define('PAYLIKE_PLUGIN_VERSION', '7.x-1.3.0');
+define('PAYLIKE_PLUGIN_VERSION', '7.x-1.4');
 
 /**
  * Implements hook_libraries_info().
@@ -353,6 +353,8 @@ function uc_paylike_charge($order_id, $amount, $data) {
       'authorized' => strtotime($transaction['created']),
       'amount' => $transaction['amount'] / 100,
     );
+    // set order status & save
+    $order->order_status = $order_status;
     uc_order_save($order);
   } catch (Exception $e) {
     $result = array(

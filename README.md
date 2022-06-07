@@ -58,7 +58,10 @@ Under the Paylike payment method settings, you can:
  ## How to capture/refund/void
 
 You can do capture/refund/void to an order using the Payment box in the order View Tab by press `Process card` button.
-The amount for partial capture, refund or void can be specified in `Charge Amount` input field.
+
+- The amount for **partial capture** can be specified in `Charge Amount` input field and use `Charge Amount` button from CREDIT CARD DETAILS fieldset.
+- The partial refund and partial void actions are based on partial captured amount (that cannot be changed).
+
 
  1. Capture
  * In Instant mode, the orders are captured automatically.
